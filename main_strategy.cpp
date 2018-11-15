@@ -2,115 +2,125 @@
 #include <iostream>
 #include <vector>
 
-class Person
+class CPerson
 {
 public:
-	Person() {}
+	CPerson() {}
 
-	Person(std::string name_, int age_, float weight_, float height_)
+	CPerson(std::string strName, int nAge, float fWeight, float fHeight)
 	{
-		name = name_;
-		age = age_;
-		weight = weight_;
-		height = height_;
+		m_strName = strName;
+		m_nAge = nAge;
+		m_nWeight = fWeight;
+		m_nHeight = fHeight;
 	}
 
-	void showMysef()
+	void ShowMysef()
 	{
-		std::cout << name << " " << age << " years old " << weight << "kg, " << height << "m." << std::endl;
+		std::cout << m_strName << " " << m_nAge << " years old " << m_nWeight << "kg, " << m_nHeight << "m." << std::endl;
 	}
 
 public:
-	std::string name;
-	int age;
-	float weight;
-	float height;
+	std::string m_strName;
+	int m_nAge;
+	float m_nWeight;
+	float m_nHeight;
 };
 
 
-class ICompare
+class CCompare
 {
 public:
-	ICompare() {}
-	virtual ~ICompare() {}
+	CCompare() {}
+	virtual ~CCompare() {}
 
-	int compareble(Person person1, Person person2)
-	{
-		return 0;
-	}
+	virtual int Compareble(CPerson cPerson1, CPerson cPerson2) = 0;
 };
 
-class CompareByAge : public ICompare
+class CCompareByAge : public CCompare
 {
 public: 
-	CompareByAge() {}
-	virtual ~CompareByAge() {}
+	CCompareByAge() {}
+	virtual ~CCompareByAge() {}
 
-	int compareble(Person person1, Person person2)
+	int Compareble(CPerson cPerson1, CPerson cPerson2)
 	{
-		return person1.age - person2.age;
+		return ((cPerson1.m_nAge - cPerson2.m_nAge) < 0);
 	}
 };
 
-class CompareByHeight : public ICompare
+class CCompareByHeight : public CCompare
 {
 public:
-	CompareByHeight() {}
-	virtual ~CompareByHeight() {}
+	CCompareByHeight() {}
+	virtual ~CCompareByHeight() {}
 
-	int compareble(Person person1, Person person2)
+	int Compareble(CPerson cPerson1, CPerson cPerson2)
 	{
-		return person1.height - person2.height;
+		return ((cPerson1.m_nHeight - cPerson2.m_nHeight) < 0.0);
 	}
 };
 
-class SortPerson
+class CSortPerson
 {
 public:
-	SortPerson(ICompare compare_) : compare(compare_) {}
+	CSortPerson(CCompare *pcCompare) : m_pcCompare(pcCompare) {}
 
-	void sort(std::vector<Person> personList)
+	~CSortPerson()
 	{
-		int n = personList.size();
-
-		Person tmp;
-		for (int i = n - 1; i > 0; i--)
+		if (m_pcCompare != NULL)
 		{
-			for (int j = 0; j < i; j++)
-			{
-				if (compare.compareble(personList[j], personList[j + 1]))
-				{
-					tmp = personList[j];
-					personList[j] = personList[j + 1];
-					personList[j + 1] = tmp;
-				}
-			}
+			delete m_pcCompare;
+			m_pcCompare = NULL;
 		}
 	}
 
+	std::vector<CPerson> sort(std::vector<CPerson> vcPersonList)
+	{
+		int n = vcPersonList.size();
+
+		CPerson tmp;
+		for (int i = 0; i < n; i++)
+		{
+			for (int j = 0; j < n - i - 1; j++)
+			{
+				int mk = m_pcCompare->Compareble(vcPersonList[j], vcPersonList[j + 1]);
+				if (m_pcCompare->Compareble(vcPersonList[j], vcPersonList[j + 1]))
+				{
+					tmp = vcPersonList[j];
+					vcPersonList[j] = vcPersonList[j + 1];
+					vcPersonList[j + 1] = tmp;
+				}
+			}
+		}
+
+		return vcPersonList;
+	}
+
 private:
-	ICompare compare;
+	CCompare *m_pcCompare;
 };
 
 int main_strategy()
 {
-	std::vector<Person> personList;	
+	std::vector<CPerson> vcPersonList;	
+	std::vector<CPerson> vcPersonListListResult;
 
-	personList.push_back(Person("Tony", 2, 54.5, 0.82));
-	personList.push_back(Person("Jack", 31, 74.5, 0.82));
-	personList.push_back(Person("Nick", 54, 44.5, 0.82));
-	personList.push_back(Person("Eric", 23, 62.5, 0.82));
-	personList.push_back(Person("Helen", 16, 45.5, 0.82));
+	vcPersonList.push_back(CPerson("Tony", 2, 54.5, 0.82));
+	vcPersonList.push_back(CPerson("Jack", 31, 74.5, 0.82));
+	vcPersonList.push_back(CPerson("Nick", 54, 44.5, 0.82));
+	vcPersonList.push_back(CPerson("Eric", 23, 62.5, 0.82));
+	vcPersonList.push_back(CPerson("Helen", 16, 45.5, 0.82));
 
-	SortPerson sorter0 = SortPerson(CompareByAge());
-	sorter0.sort(personList);
+	
+	CSortPerson cSortPerson = CSortPerson(new CCompareByAge());
 
-	for (std::vector<Person>::iterator it = personList.begin(); it != personList.end(); it++)
+	vcPersonListListResult = cSortPerson.sort(vcPersonList);
+	for (std::vector<CPerson>::iterator it = vcPersonListListResult.begin(); it != vcPersonListListResult.end(); it++)
 	{
-		it->showMysef();
+		it->ShowMysef();
 	}
 
 	return 0;
-
 }
 
